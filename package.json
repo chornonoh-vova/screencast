@@ -13,6 +13,7 @@
     "child_process": "^1.0.2",
     "chrome-launcher": "^0.10.5",
     "chrome-remote-interface": "^0.26.1",
-    "lighthouse-logger": "^1.2.0"
+    "lighthouse-logger": "^1.2.0",
+    "winston": "^3.1.0"
   }
 }
