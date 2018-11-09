@@ -5,7 +5,7 @@ const streamStats = {
   totalSeconds: 0,
   framesPerSecond: 0,
   totalFramesForFPS: 0,
-  currentFPS: 30,
+  currentFPS: 24,
   framesDeltaForFPS: 0,
   ffmpegRestartSuggested: false,
   ffmpegRestartSuggestedCounter: 0,

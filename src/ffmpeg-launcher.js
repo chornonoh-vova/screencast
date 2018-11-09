@@ -57,7 +57,20 @@ let start = (exports.start = function(params) {
 
 function ffmpegOpts(params) {
   return [
-    '-hide_banner', '-loglevel', 'panic',
+    // Common
+    // '-hide_banner', '-loglevel', 'panic',
+    //Input 0: Audio
+    '-thread_queue_size',
+    '1024',
+    '-itsoffset',
+    params.audioOffset,
+    '-f',
+    'pulse',
+    '-i',
+    params.outputName + '.monitor',
+
+    '-acodec',
+    'aac',
     // Video
     '-thread_queue_size', '1024',
     // framerate
@@ -71,8 +84,16 @@ function ffmpegOpts(params) {
     '2', '-cmp', '2', '-subcmp', '2',
     //
     // Output
-    '-vb', '2500k', '-vf', 'pp=al', '-r', params.fps, '-threads', '0',
-    // output file
-    '-f', 'mp4', params.output
+    '-vb',
+    '2500k',
+    '-vf',
+    'pp=al',
+    '-r',
+    params.fps,
+    '-threads',
+    '0',
+    '-acodec', 'aac', '-strict', '-2', '-ab', '48k', '-ac', '2', '-ar', '44100',
+    '-af', 'aresample=async=1',
+    '-f', 'mp4', params.output,
   ];
 }

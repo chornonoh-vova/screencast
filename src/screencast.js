@@ -12,6 +12,7 @@ const args = require('./args');
 const logger = require('./logger');
 const ffmpegLauncher = require('./ffmpeg-launcher');
 const stats = require('./stats');
+const audio = require('./audio');
 
 var queue, chrome, Page, Runtime, ffmpeg;
 var lastRestartDateTime = 0;
@@ -25,6 +26,8 @@ exports.start = async function() {
 
   chrome = await loadChrome();
   logger.debug(`Chrome PID: ${chrome.pid}`);
+
+  const sinkId = await initPulseAudio();
 
   // Remote interface
   const remoteInterface = await initRemoteInterface(chrome);
@@ -45,7 +48,7 @@ exports.start = async function() {
   // Wait for page loading
   await Page.loadEventFired(async() => {
     logger.debug('Page.loadEventFired');
-    await afterPageLoaded(chrome);
+    await afterPageLoaded(chrome, sinkId);
   });
 };
 
@@ -53,6 +56,19 @@ exports.stop = function() {
   ffmpeg.stdin.pause();
   ffmpeg.kill();
   chrome.kill();
+}
+
+async function initPulseAudio() {
+  try {
+    // Set Default Sink
+    await audio.setDefaultSink();
+
+    // Create a new audio sink for this stream
+    return await audio.createSink('experiment');
+  } catch (error) {
+    logger.error(error);
+    throw error;
+  }
 }
 
 function onScreencastFrame(event) {
@@ -73,7 +89,7 @@ function onScreencastFrame(event) {
     stats.getStats.ffmpegRestartSuggested = false;
     stats.getStats.ffmpegRestartSuggestedCounter = 0;
     stats.resetSmoothingAlgoStats();
-    const params = ffmpegProcessParams(stats.getStats.currentFPS,
+    const params = ffmpegProcessParams(stats.getStats.currentFPS, 0, 'experiment',
       args.getOutputName(), ffmpegSet);
     ffmpeg = ffmpegLauncher.restart(params);
     return;
@@ -95,10 +111,19 @@ function ffmpegSet(f) {
   ffmpeg = f;
 }
 
-async function afterPageLoaded() {
+async function afterPageLoaded(chrome, sinkId) {
+  // get input id
+  const inputIdList = await audio.getInputId(chrome.pid);
+
+  // for (i = 0; i < inputIdList.length; i++) {
+  //   var inputId = inputIdList[i];
+    // move input to its corresponding sink
+    await audio.moveInput(2, sinkId);
+  // }
+
   await startCapturingFrames();
 
-  const params = ffmpegProcessParams(stats.getStats.currentFPS, args.getOutputName(), null);
+  const params = ffmpegProcessParams(stats.getStats.currentFPS, 0, 'experiment',args.getOutputName(), null);
   ffmpeg = ffmpegLauncher.start(params);
 }
 
@@ -113,9 +138,11 @@ startCapturingFrames() {
   return Page.startScreencast({format: 'jpeg', quality: 100});
 }
 
-function ffmpegProcessParams(f, o, cb) {
+function ffmpegProcessParams(f, af, on, o, cb) {
   return {
     fps: f,
+    audioOffset: af,
+    outputName: on,
     output: o,
     callback: cb
   };
