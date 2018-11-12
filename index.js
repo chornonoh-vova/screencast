@@ -11,5 +11,5 @@ setTimeout((function() {
 }), 23000);
 
 process.on('exit', function(code) {
-  return console.log(`About to exit with code ${code}`);
+  return console.log(`Exiting with code ${code}`);
 });

@@ -52,13 +52,15 @@ exports.start = async function() {
   });
 };
 
-exports.stop = function() {
+exports.stop =
+    function() {
   ffmpeg.stdin.pause();
   ffmpeg.kill();
   chrome.kill();
 }
 
-async function initPulseAudio() {
+async function
+initPulseAudio() {
   try {
     // Set Default Sink
     await audio.setDefaultSink();
@@ -84,13 +86,15 @@ function onScreencastFrame(event) {
 
   const nextRestart = lastRestartDateTime + 10000;
   const newRestartDateTime = new Date().getTime();
-  if (stats.getStats.ffmpegRestartSuggested && nextRestart < newRestartDateTime) {
+  if (stats.getStats.ffmpegRestartSuggested &&
+      nextRestart < newRestartDateTime) {
     lastRestartDateTime = newRestartDateTime;
     stats.getStats.ffmpegRestartSuggested = false;
     stats.getStats.ffmpegRestartSuggestedCounter = 0;
     stats.resetSmoothingAlgoStats();
-    const params = ffmpegProcessParams(stats.getStats.currentFPS, 0, 'experiment',
-      args.getOutputName(), ffmpegSet);
+    const params = ffmpegProcessParams(
+        stats.getStats.currentFPS, 0, 'experiment', args.getOutputName(),
+        ffmpegSet);
     ffmpeg = ffmpegLauncher.restart(params);
     return;
   }
@@ -99,7 +103,7 @@ function onScreencastFrame(event) {
     stats.getStats.ffmpegReady = true;
     lastImage = new Buffer(event.data, 'base64');
     while (stats.getStats.framesToAddNow > 0) {
-      //logger.log("Adding extra frame..");
+      // logger.log("Adding extra frame..");
       ffmpeg.stdin.write(lastImage);
       stats.getStats.framesDeltaForFPS++;
       stats.frameAdded();
@@ -113,17 +117,19 @@ function ffmpegSet(f) {
 
 async function afterPageLoaded(chrome, sinkId) {
   // get input id
+  await execAsync('sleep 2');
   const inputIdList = await audio.getInputId(chrome.pid);
 
-  // for (i = 0; i < inputIdList.length; i++) {
-  //   var inputId = inputIdList[i];
+  for (i = 0; i < inputIdList.length; i++) {
+    var inputId = inputIdList[i];
     // move input to its corresponding sink
-    await audio.moveInput(2, sinkId);
-  // }
+    await audio.moveInput(inputId, sinkId);
+  }
 
   await startCapturingFrames();
 
-  const params = ffmpegProcessParams(stats.getStats.currentFPS, 0, 'experiment',args.getOutputName(), null);
+  const params = ffmpegProcessParams(
+      stats.getStats.currentFPS, 0, 'experiment', args.getOutputName(), null);
   ffmpeg = ffmpegLauncher.start(params);
 }
 
@@ -139,13 +145,7 @@ startCapturingFrames() {
 }
 
 function ffmpegProcessParams(f, af, on, o, cb) {
-  return {
-    fps: f,
-    audioOffset: af,
-    outputName: on,
-    output: o,
-    callback: cb
-  };
+  return {fps: f, audioOffset: af, outputName: on, output: o, callback: cb};
 }
 
 async function

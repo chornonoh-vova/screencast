@@ -58,7 +58,7 @@ let start = (exports.start = function(params) {
 function ffmpegOpts(params) {
   return [
     // Common
-    // '-hide_banner', '-loglevel', 'panic',
+    '-hide_banner', '-loglevel', 'panic',
     //Input 0: Audio
     '-thread_queue_size',
     '1024',

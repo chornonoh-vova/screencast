@@ -34,7 +34,7 @@ var readSinkId = exports.readSinkId = async function (sinkName){
 }
 
 var getInputId = exports.getInputId = async function(chromePid) {
-  const {stdout} = await execAsync('./scripts/get_input_index.sh ' + chromePid);
+  const {stdout} = await execAsync('scripts/get_input_index.sh ' + chromePid);
   const inputIdList = stdout.trim().split(" ");
   logger.debug("Input id: " + inputIdList);
   return inputIdList;
