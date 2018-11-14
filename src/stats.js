@@ -18,13 +18,12 @@ const streamStats = {
   idealTotalFrames: 0,
   totalFramesReceived: 0,
   totalFramesAdded: 0,
-  ffmpegReady: false
+  ffmpegReady: false,
 };
 
 exports.getStats = streamStats;
 
-exports.track =
-    function(event) {
+exports.track = function(event) {
   const now = new Date().getTime();
   streamStats.lastFrameReceivedTime = now;
   const nowInSecond = Math.floor(now / 1000);
@@ -35,20 +34,21 @@ exports.track =
       streamStats.framesDeltaForFPS =
           streamStats.framesReceivedPerSecond - streamStats.currentFPS;
       logger.debug(
-          "Second: " + streamStats.second + " received " +
-          streamStats.framesReceivedPerSecond + "/" + streamStats.currentFPS +
-          ". Delta: " + streamStats.framesDeltaForFPS + ". Sent to FFMPEG: " +
-          streamStats.totalFramesAddedPerSecond + " .");
+          'Second: ' + streamStats.second + ' received ' +
+          streamStats.framesReceivedPerSecond + '/' + streamStats.currentFPS +
+          '. Delta: ' + streamStats.framesDeltaForFPS + '. Sent to FFMPEG: ' +
+          streamStats.totalFramesAddedPerSecond + ' .');
       logger.debug(
-          "Total Frames Received: " + streamStats.totalFramesReceived +
-          " . Total Time Elapsed: " + streamStats.currentElapsedTime +
-          " . Ideal Total Frames: " + streamStats.idealTotalFrames +
-          " . Current Frames Added: " + streamStats.totalFramesAdded);
+          'Total Frames Received: ' + streamStats.totalFramesReceived +
+          ' . Total Time Elapsed: ' + streamStats.currentElapsedTime +
+          ' . Ideal Total Frames: ' + streamStats.idealTotalFrames +
+          ' . Current Frames Added: ' + streamStats.totalFramesAdded);
     }
     if (streamStats.totalSeconds > 20) {
-      if (shouldConsiderRestart() && false) {
+      if (shouldConsiderRestart()) {
         logger.debug(
-            "We should be considering restarting ffmpeg as this delta is too consistent..");
+            'We should be considering restarting ffmpeg ' +
+            'as this delta is too consistent..');
         streamStats.currentFPS =
             streamStats.currentFPS + streamStats.framesDeltaForFPS;
         streamStats.ffmpegRestartSuggested = true;
@@ -80,20 +80,18 @@ exports.track =
     streamStats.framesToAddNow =
         streamStats.idealTotalFrames - streamStats.totalFramesAdded;
   }
-}
+};
 
-exports.frameAdded =
-        function() {
+exports.frameAdded = function() {
   if (streamStats.firstFrameTime == 0) {
     streamStats.firstFrameTime = streamStats.lastFrameReceivedTime;
   }
   streamStats.totalFramesAddedPerSecond++;
   streamStats.totalFramesAdded++;
   streamStats.framesToAddNow--;
-}
+};
 
-exports.resetSmoothingAlgoStats =
-            function() {
+exports.resetSmoothingAlgoStats = function() {
   streamStats.firstFrameTime = 0;
   streamStats.lastFrameReceivedTime = 0;
   streamStats.currentElapsedTime = 0;
@@ -101,14 +99,13 @@ exports.resetSmoothingAlgoStats =
   streamStats.totalFramesReceived = 0;
   streamStats.totalFramesAdded = 0;
   streamStats.ffmpegReady = false;
-}
+};
 
-function
-shouldConsiderRestart() {
+function shouldConsiderRestart() {
   if (streamStats.framesDeltaForFPS == streamStats.lastKnownDelta &&
       streamStats.lastKnownDelta != 0) {
     // if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta ){
-    streamStats.ffmpegRestartSuggestedCounter++
+    streamStats.ffmpegRestartSuggestedCounter++;
   } else {
     streamStats.ffmpegRestartSuggestedCounter = 0;
   }

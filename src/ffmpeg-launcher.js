@@ -33,13 +33,13 @@ exports.restart = async function(params) {
   }
   ffmpeg = null;
   return ffmpeg;
-}
+};
 
-let start = (exports.start = function(params) {
+const start = (exports.start = function(params) {
   logger.debug(`Initializing ffmpeg, fps: ${params.fps}`);
 
   const opts = ffmpegOpts(params);
-  ffmpeg = spawn('ffmpeg', opts, { stdio: ['pipe', 'pipe', 2], detached: true });
+  ffmpeg = spawn('ffmpeg', opts, {stdio: ['pipe', 'pipe', 2], detached: true});
 
   ffmpeg.on('error', (e) => {
     logger.error(e);
@@ -51,7 +51,7 @@ let start = (exports.start = function(params) {
     closeAll();
   });
 
-  logger.debug(`child process started on ${ffmpeg.pid}`)
+  logger.debug(`child process started on ${ffmpeg.pid}`);
   return ffmpeg;
 });
 
@@ -59,7 +59,7 @@ function ffmpegOpts(params) {
   return [
     // Common
     '-hide_banner', '-loglevel', 'panic',
-    //Input 0: Audio
+    // Input 0: Audio
     '-thread_queue_size',
     '1024',
     '-itsoffset',

@@ -3,8 +3,7 @@ const chromeLauncher = require('chrome-launcher');
 // Needed to send commands to chrome
 const chromeRemoteInterface = require('chrome-remote-interface');
 
-// For subprocecces
-const exec = require('child_process').exec;
+// For subprocesses
 const execAsync = require('async-child-process').execAsync;
 
 // Utility
@@ -14,8 +13,10 @@ const ffmpegLauncher = require('./ffmpeg-launcher');
 const stats = require('./stats');
 const audio = require('./audio');
 
-var queue, chrome, Page, Runtime, ffmpeg;
-var lastRestartDateTime = 0;
+let audioDevice = 'experiment';
+
+let chrome; let Page; let Runtime; let ffmpeg;
+let lastRestartDateTime = 0;
 
 exports.start = async function() {
   // checking arguments
@@ -26,6 +27,7 @@ exports.start = async function() {
 
   chrome = await loadChrome();
   logger.debug(`Chrome PID: ${chrome.pid}`);
+  audioDevice += chrome.pid;
 
   const sinkId = await initPulseAudio();
 
@@ -46,27 +48,30 @@ exports.start = async function() {
   await loadPage(args.getUrl());
 
   // Wait for page loading
-  await Page.loadEventFired(async() => {
+  await Page.loadEventFired(async () => {
     logger.debug('Page.loadEventFired');
     await afterPageLoaded(chrome, sinkId);
   });
 };
 
-exports.stop =
-    function() {
+exports.stop = async function() {
   ffmpeg.stdin.pause();
   ffmpeg.kill();
   chrome.kill();
-}
+  // cleaning up virtual audio modules after end of screencast
+  execAsync(
+      `pactl unload-module $(pactl list | ` +
+      `grep -A5 'Name: ${audioDevice}.monitor' | ` +
+      `grep 'Owner Module:' | awk '{print $3}')`);
+};
 
-async function
-initPulseAudio() {
+async function initPulseAudio() {
   try {
     // Set Default Sink
     await audio.setDefaultSink();
 
     // Create a new audio sink for this stream
-    return await audio.createSink('experiment');
+    return await audio.createSink(audioDevice);
   } catch (error) {
     logger.error(error);
     throw error;
@@ -93,7 +98,7 @@ function onScreencastFrame(event) {
     stats.getStats.ffmpegRestartSuggestedCounter = 0;
     stats.resetSmoothingAlgoStats();
     const params = ffmpegProcessParams(
-        stats.getStats.currentFPS, 0, 'experiment', args.getOutputName(),
+        stats.getStats.currentFPS, 0, audioDevice, args.getOutputName(),
         ffmpegSet);
     ffmpeg = ffmpegLauncher.restart(params);
     return;
@@ -101,7 +106,7 @@ function onScreencastFrame(event) {
 
   if (ffmpeg && ffmpeg.stdin) {
     stats.getStats.ffmpegReady = true;
-    lastImage = new Buffer(event.data, 'base64');
+    const lastImage = new Buffer(event.data, 'base64');
     while (stats.getStats.framesToAddNow > 0) {
       // logger.log("Adding extra frame..");
       ffmpeg.stdin.write(lastImage);
@@ -120,8 +125,8 @@ async function afterPageLoaded(chrome, sinkId) {
   await execAsync('sleep 2');
   const inputIdList = await audio.getInputId(chrome.pid);
 
-  for (i = 0; i < inputIdList.length; i++) {
-    var inputId = inputIdList[i];
+  for (let i = 0; i < inputIdList.length; i++) {
+    const inputId = inputIdList[i];
     // move input to its corresponding sink
     await audio.moveInput(inputId, sinkId);
   }
@@ -129,7 +134,7 @@ async function afterPageLoaded(chrome, sinkId) {
   await startCapturingFrames();
 
   const params = ffmpegProcessParams(
-      stats.getStats.currentFPS, 0, 'experiment', args.getOutputName(), null);
+      stats.getStats.currentFPS, 0, audioDevice, args.getOutputName(), null);
   ffmpeg = ffmpegLauncher.start(params);
 }
 
@@ -138,8 +143,7 @@ async function loadPage(url) {
   await Page.navigate({url: url});
 }
 
-function
-startCapturingFrames() {
+function startCapturingFrames() {
   logger.debug('Starting capturing screen frames..');
   return Page.startScreencast({format: 'jpeg', quality: 100});
 }
@@ -148,8 +152,7 @@ function ffmpegProcessParams(f, af, on, o, cb) {
   return {fps: f, audioOffset: af, outputName: on, output: o, callback: cb};
 }
 
-async function
-loadChrome() {
+async function loadChrome() {
   try {
     logger.debug('Launching Chrome');
     return await launchChrome();
@@ -169,7 +172,7 @@ function launchChrome(headless = true) {
   return chromeLauncher.launch({
     chromeFlags: [
       '--window-size=1280,760', '--headless',
-      '--autoplay-policy=no-user-gesture-required'
-    ]
+      '--autoplay-policy=no-user-gesture-required',
+    ],
   });
 }

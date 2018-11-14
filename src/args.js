@@ -1,6 +1,6 @@
 const logger = require('./logger');
 
-var args = process.argv.slice(2);
+const args = process.argv.slice(2);
 
 function getUrl() {
   const url = args[0];
@@ -16,7 +16,7 @@ exports.getUrl = getUrl;
 
 function getOutputName() {
   const outputName = args[1] || 'output.mp4';
-  logger.debug("Output Name of: " + outputName);
+  logger.debug(`Output Name of: ${outputName}`);
   return outputName;
 }
 
