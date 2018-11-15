@@ -13,7 +13,7 @@ const ffmpegLauncher = require('./ffmpeg-launcher');
 const stats = require('./stats');
 const audio = require('./audio');
 
-let audioDevice = 'experiment';
+let audioDevice = 'audio-source-';
 
 let chrome; let Page; let Runtime; let ffmpeg;
 let lastRestartDateTime = 0;
@@ -42,7 +42,7 @@ exports.start = async function() {
   // Initialization of page and runtime
   await Promise.all([Page.enable(), Runtime.enable()]);
 
-  Page.screencastFrame = onScreencastFrame;
+  // Page.screencastFrame = onScreencastFrame;
 
   // Loading page
   await loadPage(args.getUrl());
@@ -59,7 +59,7 @@ exports.stop = async function() {
   ffmpeg.kill();
   chrome.kill();
   // cleaning up virtual audio modules after end of screencast
-  execAsync(
+  await execAsync(
       `pactl unload-module $(pactl list | ` +
       `grep -A5 'Name: ${audioDevice}.monitor' | ` +
       `grep 'Owner Module:' | awk '{print $3}')`);
@@ -106,7 +106,7 @@ function onScreencastFrame(event) {
 
   if (ffmpeg && ffmpeg.stdin) {
     stats.getStats.ffmpegReady = true;
-    const lastImage = new Buffer(event.data, 'base64');
+    const lastImage = Buffer.from(event.data, 'base64');
     while (stats.getStats.framesToAddNow > 0) {
       // logger.log("Adding extra frame..");
       ffmpeg.stdin.write(lastImage);
@@ -145,7 +145,7 @@ async function loadPage(url) {
 
 function startCapturingFrames() {
   logger.debug('Starting capturing screen frames..');
-  return Page.startScreencast({format: 'jpeg', quality: 100});
+  return Page.startScreencast({format: 'jpeg'});
 }
 
 function ffmpegProcessParams(f, af, on, o, cb) {

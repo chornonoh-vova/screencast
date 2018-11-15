@@ -58,7 +58,7 @@ const start = (exports.start = function(params) {
 function ffmpegOpts(params) {
   return [
     // Common
-    '-hide_banner', '-loglevel', 'panic',
+    '-hide_banner', '-loglevel', 'error',
     // Input 0: Audio
     '-thread_queue_size',
     '1024',
@@ -80,7 +80,7 @@ function ffmpegOpts(params) {
     // video settings
     '-c:v', 'libx264', '-preset', 'veryFast', '-pix_fmt', 'yuvj420p',
     // video optimization
-    '-me_method', 'epzs', '-threads', '4', '-g', '45', '-bf', '2', '-trellis',
+    '-me_method', 'epzs', '-g', '45', '-bf', '2', '-trellis',
     '2', '-cmp', '2', '-subcmp', '2',
     //
     // Output
