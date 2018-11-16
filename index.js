@@ -8,7 +8,7 @@ screencast.start();
 setTimeout((function() {
   screencast.stop();
   return process.exit(0);
-}), 23000);
+}), 100000);
 
 process.on('exit', function(code) {
   return `Exiting with code ${code}`;

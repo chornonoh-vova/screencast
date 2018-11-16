@@ -44,16 +44,6 @@ exports.track = function(event) {
           ' . Ideal Total Frames: ' + streamStats.idealTotalFrames +
           ' . Current Frames Added: ' + streamStats.totalFramesAdded);
     }
-    if (streamStats.totalSeconds > 20) {
-      if (shouldConsiderRestart()) {
-        logger.debug(
-            'We should be considering restarting ffmpeg ' +
-            'as this delta is too consistent..');
-        streamStats.currentFPS =
-            streamStats.currentFPS + streamStats.framesDeltaForFPS;
-        streamStats.ffmpegRestartSuggested = true;
-      }
-    }
     streamStats.totalSeconds++;
     streamStats.second = nowInSecond;
     streamStats.framesReceivedPerSecond = 0;
@@ -100,16 +90,3 @@ exports.resetSmoothingAlgoStats = function() {
   streamStats.totalFramesAdded = 0;
   streamStats.ffmpegReady = false;
 };
-
-function shouldConsiderRestart() {
-  if (streamStats.framesDeltaForFPS == streamStats.lastKnownDelta &&
-      streamStats.lastKnownDelta != 0) {
-    // if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta ){
-    streamStats.ffmpegRestartSuggestedCounter++;
-  } else {
-    streamStats.ffmpegRestartSuggestedCounter = 0;
-  }
-  streamStats.lastKnownDelta = streamStats.framesDeltaForFPS;
-
-  return streamStats.ffmpegRestartSuggestedCounter > 4;
-}

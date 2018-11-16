@@ -1,10 +1,9 @@
 const spawn = require('child_process').spawn;
 const logger = require('./logger');
-const execAsync = require('async-child-process').execAsync;
 
 let ffmpeg = null;
 let restart = false;
-let restartParams = null;
+const restartParams = null;
 
 function closeAll() {
   logger.debug('Closing all');
@@ -15,25 +14,6 @@ function closeAll() {
     restartParams.callback(ffmpeg);
   }
 }
-
-exports.restart = async function(params) {
-  if (ffmpeg === null) {
-    return ffmpeg;
-  }
-
-  restart = true;
-  restartParams = params;
-  try {
-    ffmpeg.stdout.pause();
-    ffmpeg.stdin.pause();
-    await execAsync(`kill -9 ${ffmpeg.pid}`);
-  } catch (error) {
-    logger.error(`Failed to close ffmpeg ${error}`);
-    process.exit(1);
-  }
-  ffmpeg = null;
-  return ffmpeg;
-};
 
 const start = (exports.start = function(params) {
   logger.debug(`Initializing ffmpeg, fps: ${params.fps}`);

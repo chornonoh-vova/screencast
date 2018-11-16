@@ -16,7 +16,6 @@ const audio = require('./audio');
 let audioDevice = 'audio-source-';
 
 let chrome; let Page; let Runtime; let ffmpeg;
-let lastRestartDateTime = 0;
 
 exports.start = async function() {
   // checking arguments
@@ -89,21 +88,6 @@ function onScreencastFrame(event) {
     return;
   }
 
-  const nextRestart = lastRestartDateTime + 10000;
-  const newRestartDateTime = new Date().getTime();
-  if (stats.getStats.ffmpegRestartSuggested &&
-      nextRestart < newRestartDateTime) {
-    lastRestartDateTime = newRestartDateTime;
-    stats.getStats.ffmpegRestartSuggested = false;
-    stats.getStats.ffmpegRestartSuggestedCounter = 0;
-    stats.resetSmoothingAlgoStats();
-    const params = ffmpegProcessParams(
-        stats.getStats.currentFPS, 0, audioDevice, args.getOutputName(),
-        ffmpegSet);
-    ffmpeg = ffmpegLauncher.restart(params);
-    return;
-  }
-
   if (ffmpeg && ffmpeg.stdin) {
     stats.getStats.ffmpegReady = true;
     const lastImage = Buffer.from(event.data, 'base64');
@@ -114,10 +98,6 @@ function onScreencastFrame(event) {
       stats.frameAdded();
     }
   }
-}
-
-function ffmpegSet(f) {
-  ffmpeg = f;
 }
 
 async function afterPageLoaded(chrome, sinkId) {
