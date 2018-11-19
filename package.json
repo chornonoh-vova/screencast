@@ -1,24 +1,26 @@
 {
   "name": "screencast",
   "version": "1.0.0",
-  "description": "Testing headless chrome",
+  "description": "Package to record any website to a video",
   "main": "src/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "./scripts/after_install.sh"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "async-child-process": "^1.1.1",
-    "child_process": "^1.0.2",
     "chrome-launcher": "^0.10.5",
     "chrome-remote-interface": "^0.26.1",
-    "lighthouse-logger": "^1.2.0",
     "winston": "^3.1.0"
   },
   "devDependencies": {
     "eslint": "^5.9.0",
     "eslint-config-google": "^0.11.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/vova-the-programmer/screencast.git"
+  },
+  "homepage": "https://bitbucket.org/vova-the-programmer/screencast#readme"
 }
