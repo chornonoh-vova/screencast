@@ -1,15 +1,22 @@
-// nodejs index.js https://www.youtube.com/watch?v=qU0obFkA16M
+// Usage:
+// node index.js <url to website> <output file path(output.mp4 by default)>
+// Examples:
+// node index.js https://www.youtube.com/watch?v=qU0obFkA16M
 
 const screencast = require('./src/screencast');
+const logger = require('./src/logger');
 
 screencast.start();
 
-
 setTimeout((function() {
-  screencast.stop();
   return process.exit(0);
 }), 100000);
 
 process.on('exit', function(code) {
-  return `Exiting with code ${code}`;
+  if (screencast.isStarted()) {
+    logger.info('Stopping screencast');
+    screencast.stop();
+  }
+  logger.info(`Exiting with code ${code}`);
+  return;
 });

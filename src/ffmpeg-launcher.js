@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 const spawn = require('child_process').spawn;
 const logger = require('./logger');
 

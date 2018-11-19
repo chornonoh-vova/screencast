@@ -28,7 +28,7 @@ exports.track = function(event) {
   streamStats.lastFrameReceivedTime = now;
   const nowInSecond = Math.floor(now / 1000);
 
-  // This will happen only once every
+  // This will happen only once every second
   if (streamStats.second != nowInSecond) {
     if (streamStats.totalSeconds > 0) {
       streamStats.framesDeltaForFPS =

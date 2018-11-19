@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 // Needed to start chrome
 const chromeLauncher = require('chrome-launcher');
 // Needed to send commands to chrome
@@ -14,6 +15,8 @@ const stats = require('./stats');
 const audio = require('./audio');
 
 let audioDevice = 'audio-source-';
+
+let started = false;
 
 let chrome; let Page; let Runtime; let ffmpeg;
 
@@ -49,6 +52,7 @@ exports.start = async function() {
   // Wait for page loading
   await Page.loadEventFired(async () => {
     logger.debug('Page.loadEventFired');
+    started = true;
     await afterPageLoaded(chrome, sinkId);
   });
 };
@@ -57,11 +61,16 @@ exports.stop = async function() {
   ffmpeg.stdin.pause();
   ffmpeg.kill();
   chrome.kill();
+  started = false;
   // cleaning up virtual audio modules after end of screencast
   await execAsync(
       `pactl unload-module $(pactl list | ` +
       `grep -A5 'Name: ${audioDevice}.monitor' | ` +
       `grep 'Owner Module:' | awk '{print $3}')`);
+};
+
+exports.isStarted = function() {
+  return started;
 };
 
 async function initPulseAudio() {
