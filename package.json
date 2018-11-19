@@ -1,6 +1,6 @@
 {
   "name": "screencast",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Package to record any website to a video",
   "main": "src/main.js",
   "scripts": {
