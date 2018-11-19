@@ -20,10 +20,12 @@ let started = false;
 
 let chrome; let Page; let Runtime; let ffmpeg;
 
-exports.start = async function() {
+let pageUrl, fileOutputName;
+
+exports.start = async function(url, outputName) {
   // checking arguments
-  args.getUrl();
-  args.getOutputName();
+  pageUrl = url || args.getUrl();
+  fileOutputName = outputName || args.getOutputName();
 
   logger.debug(`Process PID: ${process.pid}`);
 
@@ -47,7 +49,7 @@ exports.start = async function() {
   // Page.screencastFrame = onScreencastFrame;
 
   // Loading page
-  await loadPage(args.getUrl());
+  await loadPage(pageUrl);
 
   // Wait for page loading
   await Page.loadEventFired(async () => {
@@ -123,7 +125,7 @@ async function afterPageLoaded(chrome, sinkId) {
   await startCapturingFrames();
 
   const params = ffmpegProcessParams(
-      stats.getStats.currentFPS, 0, audioDevice, args.getOutputName(), null);
+      stats.getStats.currentFPS, 0, audioDevice, fileOutputName, null);
   ffmpeg = ffmpegLauncher.start(params);
 }
 
