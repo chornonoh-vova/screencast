@@ -10,6 +10,7 @@ comment() {
     fi
 }
 
-comment ../node_modules/chrome-launcher/dist/flags.js
+# Because already in node_modules
+comment ../chrome-launcher/dist/flags.js
 
-comment ../node_modules/chrome-launcher/dist/src/flags.js
+comment ../chrome-launcher/dist/src/flags.js
