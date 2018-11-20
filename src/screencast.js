@@ -20,7 +20,7 @@ let started = false;
 
 let chrome; let Page; let Runtime; let ffmpeg;
 
-let pageUrl, fileOutputName;
+let pageUrl; let fileOutputName;
 
 exports.start = async function(url, outputName) {
   // checking arguments
@@ -149,6 +149,7 @@ async function loadChrome() {
     return await launchChrome();
   } catch (error) {
     logger.error(`Failed to load Chrome: ${error}`);
+    process.exit(1);
   }
 }
 

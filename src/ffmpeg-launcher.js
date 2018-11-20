@@ -28,7 +28,7 @@ const start = (exports.start = function(params) {
   });
 
   ffmpeg.on('close', (code, signal) => {
-    logger.debug(`Terminating due to receiving signal ${signal}`);
+    logger.error(`Terminating due to receiving signal ${signal}`);
     closeAll();
   });
 
