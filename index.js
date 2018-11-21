@@ -13,9 +13,9 @@ setTimeout((function() {
 
 process.on('exit', function(code) {
   if (screencast.isStarted()) {
-    logger.info('Stopping screencast');
+    logger.debug('Stopping screencast');
     screencast.stop();
   }
-  logger.info(`Exiting with code ${code}`);
+  logger.debug(`Exiting with code ${code}`);
   return;
 });
