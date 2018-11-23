@@ -61,7 +61,7 @@ function ffmpegOpts(params) {
     // video settings
     '-c:v', 'libx264', '-preset', 'veryFast', '-pix_fmt', 'yuvj420p',
     // video optimization
-    '-me_method', 'epzs', '-g', '45', '-bf', '2', '-trellis',
+    '-me_method', 'hex', '-g', '45', '-bf', '2', '-trellis',
     '2', '-cmp', '2', '-subcmp', '2',
     //
     // Output
