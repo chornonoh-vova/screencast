@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#
 # This script will get the index for the input based on the pid of the process
 # that initiated the sound in this case chrome
 

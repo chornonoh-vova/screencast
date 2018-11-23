@@ -3,9 +3,9 @@ const audio = require('./audio');
 const logger = require('./logger');
 
 const ex = {
-	screencast,
-	audio,
-	logger
-}
+  screencast,
+  audio,
+  logger,
+};
 
 module.exports = ex;

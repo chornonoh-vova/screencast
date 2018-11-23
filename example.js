@@ -3,7 +3,7 @@
 // Examples:
 // node index.js https://www.youtube.com/watch?v=qU0obFkA16M
 
-const { screencast, logger } = require('.');
+const {screencast, logger} = require('.');
 
 screencast.start();
 

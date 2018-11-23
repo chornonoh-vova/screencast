@@ -22,6 +22,9 @@ let chrome; let Page; let Runtime; let ffmpeg;
 
 let pageUrl; let fileOutputName;
 
+const log = require('lighthouse-logger');
+log.setLevel('debug');
+
 exports.start = async function(url, outputName) {
   // checking arguments
   pageUrl = url || args.getUrl();
@@ -77,6 +80,8 @@ exports.isStarted = function() {
 
 async function initPulseAudio() {
   try {
+    // Start pulseaudio
+    await execAsync('scripts/start_pulseaudio.sh');
     // Set Default Sink
     await audio.setDefaultSink();
 
@@ -160,11 +165,14 @@ function initRemoteInterface(chrome) {
 }
 
 // Helper for chrome launching
-function launchChrome(headless = true) {
+function launchChrome() {
   return chromeLauncher.launch({
     chromeFlags: [
-      '--window-size=1280,760', '--headless',
+      '--window-size=1280,760',
+      '--headless',
+      '--disable-gpu',
       '--autoplay-policy=no-user-gesture-required',
+      pageUrl,
     ],
   });
 }
