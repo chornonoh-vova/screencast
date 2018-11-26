@@ -1,6 +1,8 @@
 const execAsync = require('async-child-process').execAsync;
 const logger = require('./logger');
 
+const { scriptsPath } = require('./utils');
+
 const createSink = exports.createSink = async function(sinkName) {
   let sinkId = await readSinkId(sinkName);
 
@@ -38,7 +40,7 @@ const readSinkId = exports.readSinkId = async function(sinkName) {
 
 // eslint-disable-next-line no-unused-vars
 const getInputId = exports.getInputId = async function(chromePid) {
-  const {stdout} = await execAsync(`scripts/get_input_index.sh ${chromePid}`);
+  const {stdout} = await execAsync(`${scriptsPath}get_input_index.sh ${chromePid}`);
   const inputIdList = stdout.trim().split(' ');
   logger.debug('Input id: ' + inputIdList);
   return inputIdList;

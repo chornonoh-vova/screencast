@@ -14,6 +14,8 @@ const ffmpegLauncher = require('./ffmpeg-launcher');
 const stats = require('./stats');
 const audio = require('./audio');
 
+const { scriptsPath } = require('./utils');
+
 let audioDevice = 'audio-source-';
 
 let started = false;
@@ -22,13 +24,19 @@ let chrome; let Page; let Runtime; let ffmpeg;
 
 let pageUrl; let fileOutputName;
 
+// Parameters for chrome launching
+let pageHeight; let pageWidth;
+
+// Chrome logging level
 const log = require('lighthouse-logger');
 log.setLevel('debug');
 
-exports.start = async function(url, outputName) {
+exports.start = async function(url, outputName, width, height) {
   // checking arguments
   pageUrl = url || args.getUrl();
   fileOutputName = outputName || args.getOutputName();
+  pageWidth = width || '1280';
+  pageHeight = height || '760';
 
   logger.debug(`Process PID: ${process.pid}`);
 
@@ -81,7 +89,7 @@ exports.isStarted = function() {
 async function initPulseAudio() {
   try {
     // Start pulseaudio
-    await execAsync('scripts/start_pulseaudio.sh');
+    await execAsync(`${scriptsPath}start_pulseaudio.sh`);
     // Set Default Sink
     await audio.setDefaultSink();
 
@@ -117,13 +125,14 @@ function onScreencastFrame(event) {
 }
 
 async function afterPageLoaded(chrome, sinkId) {
-  // get input id
+  // Waiting for pulseaudio initialization
   await execAsync('sleep 2');
+  // Get input id
   const inputIdList = await audio.getInputId(chrome.pid);
 
   for (let i = 0; i < inputIdList.length; i++) {
     const inputId = inputIdList[i];
-    // move input to its corresponding sink
+    // Move input to its corresponding sink
     await audio.moveInput(inputId, sinkId);
   }
 
@@ -168,9 +177,13 @@ function initRemoteInterface(chrome) {
 function launchChrome() {
   return chromeLauncher.launch({
     chromeFlags: [
-      '--window-size=1280,760',
-      '--headless',
-      '--disable-gpu',
+      // Setting up virtual windows size
+      `--window-size=${pageWidth},${pageHeight}`,
+      // Mandatory parameters
+      '--headless', '--disable-gpu',
+      // Fixes issue, when no sandbox is avalaible
+      '--no-sandbox',
+      // Fixes issue, when user must press play on page
       '--autoplay-policy=no-user-gesture-required',
       pageUrl,
     ],
