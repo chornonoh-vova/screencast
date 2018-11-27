@@ -28,8 +28,8 @@ let pageUrl; let fileOutputName;
 let pageHeight; let pageWidth;
 
 // Chrome logging level
-const log = require('lighthouse-logger');
-log.setLevel('debug');
+// const log = require('lighthouse-logger');
+// log.setLevel('debug');
 
 exports.start = async function(url, outputName, width, height) {
   // checking arguments
