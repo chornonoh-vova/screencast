@@ -1,92 +1,98 @@
 const logger = require('./logger');
 
-const streamStats = {
-  second: Math.floor(new Date().getTime() / 1000),
-  totalSeconds: 0,
-  framesPerSecond: 0,
-  totalFramesForFPS: 0,
-  currentFPS: 24,
-  framesDeltaForFPS: 0,
-  ffmpegRestartSuggested: false,
-  ffmpegRestartSuggestedCounter: 0,
-  lastKnownDelta: 0,
+module.exports = function() {
+  this.streamStats = {
+    second: Math.floor(new Date().getTime() / 1000),
+    totalSeconds: 0,
+    framesPerSecond: 0,
+    totalFramesForFPS: 0,
+    currentFPS: 30,
+    framesDeltaForFPS: 0,
+    ffmpegRestartSuggested: false,
+    ffmpegRestartSuggestedCounter: 0,
+    lastKnownDelta: 0,
 
-  // Smoothing algo vars
-  firstFrameTime: 0,
-  lastFrameReceivedTime: 0,
-  currentElapsedTime: 0,
-  idealTotalFrames: 0,
-  totalFramesReceived: 0,
-  totalFramesAdded: 0,
-  ffmpegReady: false,
-};
+    // Smoothing algo vars
+    firstFrameTime: 0,
+    lastFrameReceivedTime: 0,
+    currentElapsedTime: 0,
+    idealTotalFrames: 0,
+    totalFramesReceived: 0,
+    totalFramesAdded: 0,
+    ffmpegReady: false,
+  };
 
-exports.getStats = streamStats;
+  this.getStats = this.streamStats;
 
-exports.track = function(event) {
-  const now = new Date().getTime();
-  streamStats.lastFrameReceivedTime = now;
-  const nowInSecond = Math.floor(now / 1000);
+  this.track = (event) => {
+    const now = new Date().getTime();
+    this.streamStats.lastFrameReceivedTime = now;
+    const nowInSecond = Math.floor(now / 1000);
 
-  // This will happen only once every second
-  if (streamStats.second != nowInSecond) {
-    if (streamStats.totalSeconds > 0) {
-      streamStats.framesDeltaForFPS =
-          streamStats.framesReceivedPerSecond - streamStats.currentFPS;
-      logger.debug(
-          'Second: ' + streamStats.second + ' received ' +
-          streamStats.framesReceivedPerSecond + '/' + streamStats.currentFPS +
-          '. Delta: ' + streamStats.framesDeltaForFPS + '. Sent to FFMPEG: ' +
-          streamStats.totalFramesAddedPerSecond + ' .');
-      logger.debug(
-          'Total Frames Received: ' + streamStats.totalFramesReceived +
-          ' . Total Time Elapsed: ' + streamStats.currentElapsedTime +
-          ' . Ideal Total Frames: ' + streamStats.idealTotalFrames +
-          ' . Current Frames Added: ' + streamStats.totalFramesAdded);
-    }
-    streamStats.totalSeconds++;
-    streamStats.second = nowInSecond;
-    streamStats.framesReceivedPerSecond = 0;
-    streamStats.totalFramesAddedPerSecond = 0;
-  }
-
-  streamStats.framesReceivedPerSecond++;
-
-  // calculate frames to add now only start adding when we know
-  // we are read
-  if (streamStats.ffmpegReady) {
-    // adjust first time
-    if (streamStats.firstFrameTime == 0) {
-      streamStats.firstFrameTime = now;
+    // This will happen only once every second
+    if (this.streamStats.second != nowInSecond) {
+      if (this.streamStats.totalSeconds > 0) {
+        this.streamStats.framesDeltaForFPS =
+            this.streamStats.framesReceivedPerSecond -
+            this.streamStats.currentFPS;
+        logger.debug(
+            'Second: ' + this.streamStats.second + ' received ' +
+            this.streamStats.framesReceivedPerSecond + '/' +
+            this.streamStats.currentFPS + '. Delta: ' +
+            this.streamStats.framesDeltaForFPS + '. Sent to FFMPEG: ' +
+            this.streamStats.totalFramesAddedPerSecond + ' .');
+        logger.debug(
+            'Total Frames Received: ' + this.streamStats.totalFramesReceived +
+            ' . Total Time Elapsed: ' + this.streamStats.currentElapsedTime +
+            ' . Ideal Total Frames: ' + this.streamStats.idealTotalFrames +
+            ' . Current Frames Added: ' + this.streamStats.totalFramesAdded);
+      }
+      this.streamStats.totalSeconds++;
+      this.streamStats.second = nowInSecond;
+      this.streamStats.framesReceivedPerSecond = 0;
+      this.streamStats.totalFramesAddedPerSecond = 0;
     }
 
-    streamStats.totalFramesReceived++;
-    streamStats.idealFrameDistance = 1000 / streamStats.currentFPS;
-    streamStats.currentElapsedTime = now - streamStats.firstFrameTime;
-    streamStats.idealTotalFrames =
-        Math.floor(
-            streamStats.currentElapsedTime / streamStats.idealFrameDistance) +
-        1;
-    streamStats.framesToAddNow =
-        streamStats.idealTotalFrames - streamStats.totalFramesAdded;
-  }
-};
+    this.streamStats.framesReceivedPerSecond++;
 
-exports.frameAdded = function() {
-  if (streamStats.firstFrameTime == 0) {
-    streamStats.firstFrameTime = streamStats.lastFrameReceivedTime;
-  }
-  streamStats.totalFramesAddedPerSecond++;
-  streamStats.totalFramesAdded++;
-  streamStats.framesToAddNow--;
-};
+    // calculate frames to add now only start adding when we know
+    // we are read
+    if (this.streamStats.ffmpegReady) {
+      // adjust first time
+      if (this.streamStats.firstFrameTime == 0) {
+        this.streamStats.firstFrameTime = now;
+      }
 
-exports.resetSmoothingAlgoStats = function() {
-  streamStats.firstFrameTime = 0;
-  streamStats.lastFrameReceivedTime = 0;
-  streamStats.currentElapsedTime = 0;
-  streamStats.idealTotalFrames = 0;
-  streamStats.totalFramesReceived = 0;
-  streamStats.totalFramesAdded = 0;
-  streamStats.ffmpegReady = false;
+      this.streamStats.totalFramesReceived++;
+      this.streamStats.idealFrameDistance = 1000 / this.streamStats.currentFPS;
+      this.streamStats.currentElapsedTime =
+          now - this.streamStats.firstFrameTime;
+      this.streamStats.idealTotalFrames =
+          Math.floor(
+              this.streamStats.currentElapsedTime /
+              this.streamStats.idealFrameDistance) +
+          1;
+      this.streamStats.framesToAddNow =
+          this.streamStats.idealTotalFrames - this.streamStats.totalFramesAdded;
+    }
+  };
+
+  this.frameAdded = () => {
+    if (this.streamStats.firstFrameTime == 0) {
+      this.streamStats.firstFrameTime = this.streamStats.lastFrameReceivedTime;
+    }
+    this.streamStats.totalFramesAddedPerSecond++;
+    this.streamStats.totalFramesAdded++;
+    this.streamStats.framesToAddNow--;
+  };
+
+  this.resetSmoothingAlgoStats = () => {
+    this.streamStats.firstFrameTime = 0;
+    this.streamStats.lastFrameReceivedTime = 0;
+    this.streamStats.currentElapsedTime = 0;
+    this.streamStats.idealTotalFrames = 0;
+    this.streamStats.totalFramesReceived = 0;
+    this.streamStats.totalFramesAdded = 0;
+    this.streamStats.ffmpegReady = false;
+  };
 };

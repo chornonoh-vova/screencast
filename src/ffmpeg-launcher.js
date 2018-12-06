@@ -39,38 +39,36 @@ const start = (exports.start = function(params) {
 function ffmpegOpts(params) {
   return [
     // Common
-    '-hide_banner', '-loglevel', 'error',
+    // '-hide_banner', '-loglevel', 'error',
     // Input 0: Audio
     '-thread_queue_size',
-    '1024',
+    '2048',
     '-itsoffset',
     params.audioOffset,
     '-f',
     'pulse',
     '-i',
     params.outputName + '.monitor',
-
     '-acodec',
     'aac',
     // Video
-    '-thread_queue_size', '1024',
+    '-thread_queue_size', '2048',
     // framerate
     '-framerate', params.fps,
     // input
     '-i', '-', '-f', 'image2pipe',
     // video settings
     '-c:v', 'libx264', '-preset', 'veryFast', '-pix_fmt', 'yuvj420p',
+    '-movflags', 'faststart',
     // video optimization
-    '-me_method', 'hex', '-g', '45', '-bf', '2', '-trellis',
-    '2', '-cmp', '2', '-subcmp', '2',
+    '-me_method', 'hex', '-threads', '5',
     //
     // Output
     '-vb',
     '2500k',
     '-vf',
     'pp=al',
-    '-r',
-    params.fps,
+    '-r', params.fps,
     '-threads',
     '0',
     '-acodec', 'aac', '-strict', '-2', '-ab', '48k', '-ac', '2', '-ar', '44100',

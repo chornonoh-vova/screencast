@@ -11,181 +11,187 @@ const execAsync = require('async-child-process').execAsync;
 const args = require('./args');
 const logger = require('./logger');
 const ffmpegLauncher = require('./ffmpeg-launcher');
-const stats = require('./stats');
+const Stats = require('./stats');
 const audio = require('./audio');
 
-const { scriptsPath } = require('./utils');
+const {scriptsPath} = require('./utils');
 
-let audioDevice = 'audio-source-';
-
-let started = false;
-
-let chrome; let Page; let Runtime; let ffmpeg;
-
-let pageUrl; let fileOutputName;
-
-// Parameters for chrome launching
-let pageHeight; let pageWidth;
-
-// Chrome logging level
-// const log = require('lighthouse-logger');
-// log.setLevel('debug');
-
-exports.start = async function(url, outputName, width, height) {
-  // checking arguments
-  pageUrl = url || args.getUrl();
-  fileOutputName = outputName || args.getOutputName();
-  pageWidth = width || '1280';
-  pageHeight = height || '760';
-
-  logger.debug(`Process PID: ${process.pid}`);
-
-  chrome = await loadChrome();
-  logger.debug(`Chrome PID: ${chrome.pid}`);
-  audioDevice += chrome.pid;
-
-  const sinkId = await initPulseAudio();
-
-  // Remote interface
-  const remoteInterface = await initRemoteInterface(chrome);
-  // Listener for new frame
-  remoteInterface.on('Page.screencastFrame', onScreencastFrame);
-
-  Page = remoteInterface.Page;
-  Runtime = remoteInterface.Runtime;
-
-  // Initialization of page and runtime
-  await Promise.all([Page.enable(), Runtime.enable()]);
-
-  // Page.screencastFrame = onScreencastFrame;
-
-  // Loading page
-  await loadPage(pageUrl);
-
-  // Wait for page loading
-  await Page.loadEventFired(async () => {
-    logger.debug('Page.loadEventFired');
-    started = true;
-    await afterPageLoaded(chrome, sinkId);
-  });
-};
-
-exports.stop = async function() {
-  ffmpeg.stdin.pause();
-  ffmpeg.kill();
-  chrome.kill();
-  started = false;
-  // cleaning up virtual audio modules after end of screencast
-  await execAsync(
-      `pactl unload-module $(pactl list | ` +
-      `grep -A5 'Name: ${audioDevice}.monitor' | ` +
-      `grep 'Owner Module:' | awk '{print $3}')`);
-};
-
-exports.isStarted = function() {
-  return started;
-};
-
-async function initPulseAudio() {
-  try {
-    // Start pulseaudio
-    await execAsync(`${scriptsPath}start_pulseaudio.sh`);
-    // Set Default Sink
-    await audio.setDefaultSink();
-
-    // Create a new audio sink for this stream
-    return await audio.createSink(audioDevice);
-  } catch (error) {
-    logger.error(error);
-    throw error;
-  }
-}
-
-function onScreencastFrame(event) {
-  Page.screencastFrameAck({sessionId: event.sessionId}).catch((err) => {
-    logger.error(err);
-  });
-
-  stats.track(event);
-
-  if (ffmpeg == null) {
-    return;
+class ScreenCast {
+  constructor() {
+    this.audioDevice = 'audio-source-';
+    this.started = false;
+    this.chrome = null;
+    this.Page = null;
+    this.ffmpeg = null;
+    this.pageUrl = null;
+    this.fileOutputName = null;
+    this.pageHeight = null;
+    this.pageWidth = null;
+    this.remoteInterface = null;
+    this.stats = new Stats();
   }
 
-  if (ffmpeg && ffmpeg.stdin) {
-    stats.getStats.ffmpegReady = true;
-    const lastImage = Buffer.from(event.data, 'base64');
-    while (stats.getStats.framesToAddNow > 0) {
-      // logger.log("Adding extra frame..");
-      ffmpeg.stdin.write(lastImage);
-      stats.getStats.framesDeltaForFPS++;
-      stats.frameAdded();
+  async start(url, outputName, width, height) {
+    // checking arguments
+    this.pageUrl = url || args.getUrl();
+    this.fileOutputName = outputName || args.getOutputName();
+    this.pageWidth = width || '1400';
+    this.pageHeight = height || '900';
+
+    logger.debug(`Process PID: ${process.pid}`);
+
+    this.chrome = await this.loadChrome();
+    logger.debug(`Chrome PID: ${this.chrome.pid}`);
+    this.audioDevice += this.chrome.pid;
+
+    const sinkId = await this.initPulseAudio();
+
+    // Remote interface
+    this.remoteInterface = await this.initRemoteInterface(this.chrome);
+
+    this.Page = this.remoteInterface.Page;
+    this.Runtime = this.remoteInterface.Runtime;
+
+    // Initialization of page and runtime
+    await Promise.all([this.Page.enable(), this.Runtime.enable()]);
+
+    // Page.screencastFrame = onScreencastFrame;
+
+    // Loading page
+    await this.loadPage(this.pageUrl);
+
+    // Wait for page loading
+    await this.Page.loadEventFired(async () => {
+      logger.debug('Page.loadEventFired');
+      this.started = true;
+      await this.afterPageLoaded(this.chrome, sinkId);
+    });
+  }
+
+  async stop() {
+    this.ffmpeg.stdin.pause();
+    this.ffmpeg.kill();
+    this.chrome.kill();
+    this.started = false;
+    // cleaning up virtual audio modules after end of screencast
+    await execAsync(
+        `pactl unload-module $(pactl list | ` +
+        `grep -A5 'Name: ${this.audioDevice}.monitor' | ` +
+        `grep 'Owner Module:' | awk '{print $3}')`);
+  }
+
+  isStarted() {
+    return this.started;
+  }
+
+  async initPulseAudio() {
+    try {
+      // Start pulseaudio
+      await execAsync(`${scriptsPath}start_pulseaudio.sh`);
+      // Set Default Sink
+      await audio.setDefaultSink();
+
+      // Create a new audio sink for this stream
+      return await audio.createSink(this.audioDevice);
+    } catch (error) {
+      logger.error(error);
+      throw error;
     }
   }
-}
 
-async function afterPageLoaded(chrome, sinkId) {
-  // Waiting for pulseaudio initialization
-  await execAsync('sleep 2');
-  // Get input id
-  const inputIdList = await audio.getInputId(chrome.pid);
+  onScreencastFrame(event) {
+    this.Page.screencastFrameAck({sessionId: event.sessionId}).catch((err) => {
+      logger.error(err);
+    });
 
-  for (let i = 0; i < inputIdList.length; i++) {
-    const inputId = inputIdList[i];
-    // Move input to its corresponding sink
-    await audio.moveInput(inputId, sinkId);
+    this.stats.track(event);
+    if (this.ffmpeg == null) {
+      return;
+    }
+
+    if (this.ffmpeg && this.ffmpeg.stdin) {
+      this.stats.getStats.ffmpegReady = true;
+      const lastImage = Buffer.from(event.data, 'base64');
+      while (this.stats.getStats.framesToAddNow > 0) {
+        // logger.log("Adding extra frame..");
+        this.ffmpeg.stdin.write(lastImage);
+        this.stats.getStats.framesDeltaForFPS++;
+        this.stats.frameAdded();
+      }
+    }
   }
 
-  await startCapturingFrames();
+  async afterPageLoaded(chrome, sinkId) {
+    // Waiting for pulseaudio initialization
+    await execAsync('sleep 2');
+    // Get input id
+    const inputIdList = await audio.getInputId(chrome.pid);
 
-  const params = ffmpegProcessParams(
-      stats.getStats.currentFPS, 0, audioDevice, fileOutputName, null);
-  ffmpeg = ffmpegLauncher.start(params);
-}
+    for (let i = 0; i < inputIdList.length; i++) {
+      const inputId = inputIdList[i];
+      // Move input to its corresponding sink
+      await audio.moveInput(inputId, sinkId);
+    }
+    const params = ffmpegProcessParams(
+        this.stats.getStats.currentFPS,
+        0, this.audioDevice, this.fileOutputName,
+        null);
+    this.ffmpeg = ffmpegLauncher.start(params);
 
-async function loadPage(url) {
-  logger.debug(`Loading page: ${url}`);
-  await Page.navigate({url: url});
-}
+    await this.startCapturingFrames();
+  }
 
-function startCapturingFrames() {
-  logger.debug('Starting capturing screen frames..');
-  return Page.startScreencast({format: 'jpeg'});
+
+  async loadPage(url) {
+    logger.debug(`Loading page: ${url}`);
+    await this.Page.navigate({url: url});
+  }
+
+  startCapturingFrames() {
+    // Listener for new frame
+    this.remoteInterface.on('Page.screencastFrame', (event) => {
+      this.onScreencastFrame(event);
+    });
+    logger.debug('Starting capturing screen frames..');
+    return this.Page.startScreencast({format: 'jpeg', quality: 50});
+  }
+
+  async loadChrome() {
+    try {
+      logger.debug('Launching Chrome');
+      return await this.launchChrome();
+    } catch (error) {
+      logger.error(`Failed to load Chrome: ${error}`);
+      process.exit(1);
+    }
+  }
+
+  initRemoteInterface(chrome) {
+    const port = this.chrome.port;
+    logger.debug(`Initialising remote interface on port: ${port}`);
+    return chromeRemoteInterface({port: port});
+  }
+
+  // Helper for chrome launching
+  launchChrome() {
+    return chromeLauncher.launch({
+      chromeFlags: [
+        // Setting up virtual windows size
+        `--window-size=${this.pageWidth},${this.pageHeight}`,
+        // Mandatory parameters
+        '--headless', // '--disable-gpu',
+        // Fixes issue, when no sandbox is avalaible
+        '--no-sandbox',
+        // Fixes issue, when user must press play on page
+        '--autoplay-policy=no-user-gesture-required',
+        this.pageUrl,
+      ],
+    });
+  }
 }
 
 function ffmpegProcessParams(f, af, on, o, cb) {
   return {fps: f, audioOffset: af, outputName: on, output: o, callback: cb};
 }
 
-async function loadChrome() {
-  try {
-    logger.debug('Launching Chrome');
-    return await launchChrome();
-  } catch (error) {
-    logger.error(`Failed to load Chrome: ${error}`);
-    process.exit(1);
-  }
-}
-
-function initRemoteInterface(chrome) {
-  const port = chrome.port;
-  logger.debug(`Initialising remote interface on port: ${port}`);
-  return chromeRemoteInterface({port: port});
-}
-
-// Helper for chrome launching
-function launchChrome() {
-  return chromeLauncher.launch({
-    chromeFlags: [
-      // Setting up virtual windows size
-      `--window-size=${pageWidth},${pageHeight}`,
-      // Mandatory parameters
-      '--headless', '--disable-gpu',
-      // Fixes issue, when no sandbox is avalaible
-      '--no-sandbox',
-      // Fixes issue, when user must press play on page
-      '--autoplay-policy=no-user-gesture-required',
-      pageUrl,
-    ],
-  });
-}
+module.exports.ScreenCast = ScreenCast;

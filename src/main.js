@@ -1,9 +1,9 @@
-const screencast = require('./screencast');
+const ScreenCast = require('./screencast').ScreenCast;
 const audio = require('./audio');
 const logger = require('./logger');
 
 const ex = {
-  screencast,
+  ScreenCast,
   audio,
   logger,
 };
