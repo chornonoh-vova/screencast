@@ -69,9 +69,9 @@ class ScreenCast {
   }
 
   async stop() {
-    this.ffmpeg.stdin.pause();
-    this.ffmpeg.kill();
+    // this.ffmpeg.stdin.pause();
     this.chrome.kill();
+    this.ffmpeg.kill();
     this.started = false;
     // cleaning up virtual audio modules after end of screencast
     await execAsync(

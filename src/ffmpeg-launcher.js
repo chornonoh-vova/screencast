@@ -20,7 +20,7 @@ const start = (exports.start = function(params) {
   logger.debug(`Initializing ffmpeg, fps: ${params.fps}`);
 
   const opts = ffmpegOpts(params);
-  ffmpeg = spawn('ffmpeg', opts, {stdio: ['pipe', 'pipe', 2], detached: true});
+  ffmpeg = spawn('ffmpeg', opts, {stdio: ['pipe', 'ignore', 'ignore'], detached: true});
 
   ffmpeg.on('error', (e) => {
     logger.error(e);

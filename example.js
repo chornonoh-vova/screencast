@@ -3,34 +3,23 @@
 // Examples:
 // node index.js https://www.youtube.com/watch?v=qU0obFkA16M
 
-const {ScreenCast, logger} = require('.');
+const exec = require('child_process').exec;
 
-start();
+const screencast = exec('node recording.js https://www.youtube.com/watch?v=0I647GU3Jsc output2.mp4');
 
-const screencast1 = new ScreenCast();
-const screencast2 = new ScreenCast();
-screencast1.start('https://www.youtube.com/watch?v=qU0obFkA16M', 'output1.mp4');
-screencast2.start();
+setInterval(function() {
+  console.log("running");
+}, 1000);
 
 setTimeout((function() {
-  return process.exit(0);
-}), 100000);
+  screencast.kill();
+  exec(`kill -INT ${screencast.pid + 1}`);
+}), 20 * 1000);
 
 process.on('exit', function(code) {
-  end();
-  if (screencast1.isStarted()) {
-    logger.debug('Stopping screencast');
-    screencast1.stop();
-  }
-  if (screencast2.isStarted()) {
-    logger.debug('Stopping screencast');
-    screencast2.stop();
-  }
-  logger.debug(`Exiting with code ${code}`);
-  return;
+  
 });
 
-let startTime; let endTime;
 
 function start() {
   startTime = new Date();
