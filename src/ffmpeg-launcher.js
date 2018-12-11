@@ -20,7 +20,7 @@ const start = (exports.start = function(params) {
   logger.debug(`Initializing ffmpeg, fps: ${params.fps}`);
 
   const opts = ffmpegOpts(params);
-  ffmpeg = spawn('ffmpeg', opts, {stdio: ['pipe', 'ignore', 'ignore'], detached: true});
+  ffmpeg = spawn('ffmpeg', opts, {stdio: ['pipe', 'pipe', 2], detached: true});
 
   ffmpeg.on('error', (e) => {
     logger.error(e);
@@ -41,16 +41,10 @@ function ffmpegOpts(params) {
     // Common
     // '-hide_banner', '-loglevel', 'error',
     // Input 0: Audio
-    '-thread_queue_size',
-    '2048',
-    '-itsoffset',
-    params.audioOffset,
-    '-f',
-    'pulse',
-    '-i',
-    params.outputName + '.monitor',
-    '-acodec',
-    'aac',
+    '-thread_queue_size', '4096',
+    '-itsoffset', params.audioOffset,
+    '-f', 'pulse',
+    '-i', params.outputName + '.monitor', '-acodec', 'libopus',
     // Video
     '-thread_queue_size', '2048',
     // framerate
@@ -58,8 +52,9 @@ function ffmpegOpts(params) {
     // input
     '-i', '-', '-f', 'image2pipe',
     // video settings
-    '-c:v', 'libx264', '-preset', 'veryFast', '-pix_fmt', 'yuvj420p',
-    '-movflags', 'faststart',
+    // for mp4
+    'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuvj420p',
+    '-movflags', '+faststart',
     // video optimization
     '-me_method', 'hex', '-threads', '5',
     //
@@ -69,10 +64,7 @@ function ffmpegOpts(params) {
     '-vf',
     'pp=al',
     '-r', params.fps,
-    '-threads',
-    '0',
-    '-acodec', 'aac', '-strict', '-2', '-ab', '48k', '-ac', '2', '-ar', '44100',
-    '-af', 'aresample=async=1',
+    '-threads', '5',
     '-f', 'mp4', params.output,
   ];
 }

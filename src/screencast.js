@@ -112,6 +112,13 @@ class ScreenCast {
     if (this.ffmpeg && this.ffmpeg.stdin) {
       this.stats.getStats.ffmpegReady = true;
       const lastImage = Buffer.from(event.data, 'base64');
+
+      for (let i = 0; i < this.stats.getStats.addIterations; i++) {
+        this.ffmpeg.stdin.write(lastImage);
+        this.stats.getStats.framesDeltaForFPS++;
+        this.stats.frameAdded();
+      }
+
       while (this.stats.getStats.framesToAddNow > 0) {
         // logger.log("Adding extra frame..");
         this.ffmpeg.stdin.write(lastImage);

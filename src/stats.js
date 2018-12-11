@@ -6,7 +6,7 @@ module.exports = function() {
     totalSeconds: 0,
     framesPerSecond: 0,
     totalFramesForFPS: 0,
-    currentFPS: 15,
+    currentFPS: 24,
     framesDeltaForFPS: 0,
     ffmpegRestartSuggested: false,
     ffmpegRestartSuggestedCounter: 0,
@@ -20,6 +20,8 @@ module.exports = function() {
     totalFramesReceived: 0,
     totalFramesAdded: 0,
     ffmpegReady: false,
+
+    addIterations: 2
   };
 
   this.getStats = this.streamStats;
@@ -46,6 +48,11 @@ module.exports = function() {
             ' . Total Time Elapsed: ' + this.streamStats.currentElapsedTime +
             ' . Ideal Total Frames: ' + this.streamStats.idealTotalFrames +
             ' . Current Frames Added: ' + this.streamStats.totalFramesAdded);
+        this.streamStats.addIterations = Math.ceil(
+            this.streamStats.currentFPS /
+            Math.abs(this.streamStats.framesDeltaForFPS));
+
+        logger.debug('Add iterarions: ' + this.streamStats.addIterations);
       }
       this.streamStats.totalSeconds++;
       this.streamStats.second = nowInSecond;

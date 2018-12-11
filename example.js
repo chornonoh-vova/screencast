@@ -5,16 +5,13 @@
 
 const exec = require('child_process').exec;
 
-const screencast = exec('node recording.js https://www.youtube.com/watch?v=0I647GU3Jsc output2.mp4');
-
-setInterval(function() {
-  console.log("running");
-}, 1000);
+const screencast = exec('node recording.js https://www.youtube.com/watch?v=0I647GU3Jsc output3.mp4');
 
 setTimeout((function() {
+  console.log('ended recording');
   screencast.kill();
   exec(`kill -INT ${screencast.pid + 1}`);
-}), 20 * 1000);
+}), 200 * 1000);
 
 process.on('exit', function(code) {
   
