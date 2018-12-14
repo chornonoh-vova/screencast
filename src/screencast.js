@@ -58,10 +58,10 @@ class ScreenCast {
     // Page.screencastFrame = onScreencastFrame;
 
     // Loading page
-    await this.loadPage(this.pageUrl);
+    // await this.loadPage(this.pageUrl);
 
     // Wait for page loading
-    await this.Page.loadEventFired(async () => {
+    await this.Page.loadEventFired(async() => {
       logger.debug('Page.loadEventFired');
       this.started = true;
       await this.afterPageLoaded(this.chrome, sinkId);
@@ -80,9 +80,7 @@ class ScreenCast {
         `grep 'Owner Module:' | awk '{print $3}')`);
   }
 
-  isStarted() {
-    return this.started;
-  }
+  isStarted() { return this.started; }
 
   async initPulseAudio() {
     try {
@@ -140,9 +138,8 @@ class ScreenCast {
       await audio.moveInput(inputId, sinkId);
     }
     const params = ffmpegProcessParams(
-        this.stats.getStats.currentFPS,
-        0, this.audioDevice, this.fileOutputName,
-        null);
+        this.stats.getStats.currentFPS, 0, this.audioDevice,
+        this.fileOutputName, null);
     this.ffmpeg = ffmpegLauncher.start(params);
 
     await this.startCapturingFrames();
@@ -156,9 +153,8 @@ class ScreenCast {
 
   startCapturingFrames() {
     // Listener for new frame
-    this.remoteInterface.on('Page.screencastFrame', (event) => {
-      this.onScreencastFrame(event);
-    });
+    this.remoteInterface.on(
+        'Page.screencastFrame', (event) => { this.onScreencastFrame(event); });
     logger.debug('Starting capturing screen frames..');
     return this.Page.startScreencast({format: 'jpeg', quality: 50});
   }
@@ -183,16 +179,26 @@ class ScreenCast {
   launchChrome() {
     return chromeLauncher.launch({
       chromeFlags: [
+        // Usefull flags
+        '--enable-automation',
+        '--disable-background-timer-throttling',
+        '--run-all-compositor-stages-before-draw',
+        '--disable-new-content-rendering-timeout',
+        '--enable-features=SurfaceSynchronization',
+        '--disable-threaded-animation',
+        '--disable-threaded-scrolling',
+        '--disable-checker-imaging',
+        '--disable-image-animation-resync',
         // Setting up virtual windows size
         `--window-size=${this.pageWidth},${this.pageHeight}`,
         // Mandatory parameters
-        '--headless', // '--disable-gpu',
+        '--headless',  // '--disable-gpu',
         // Fixes issue, when no sandbox is avalaible
         '--no-sandbox',
         // Fixes issue, when user must press play on page
         '--autoplay-policy=no-user-gesture-required',
-        this.pageUrl,
       ],
+      startingUrl: this.pageUrl,
     });
   }
 }

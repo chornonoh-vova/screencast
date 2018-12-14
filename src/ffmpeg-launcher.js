@@ -44,7 +44,7 @@ function ffmpegOpts(params) {
     '-thread_queue_size', '4096',
     '-itsoffset', params.audioOffset,
     '-f', 'pulse',
-    '-i', params.outputName + '.monitor', '-acodec', 'libopus',
+    '-i', params.outputName + '.monitor', '-acodec', 'aac',
     // Video
     '-thread_queue_size', '2048',
     // framerate
@@ -53,7 +53,8 @@ function ffmpegOpts(params) {
     '-i', '-', '-f', 'image2pipe',
     // video settings
     // for mp4
-    'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuvj420p',
+    '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuvj420p',
+    '-tune', 'zerolatency',
     '-movflags', '+faststart',
     // video optimization
     '-me_method', 'hex', '-threads', '5',

@@ -21,7 +21,7 @@ module.exports = function() {
     totalFramesAdded: 0,
     ffmpegReady: false,
 
-    addIterations: 2
+    addIterations: 2,
   };
 
   this.getStats = this.streamStats;
