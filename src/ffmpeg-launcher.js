@@ -41,29 +41,30 @@ function ffmpegOpts(params) {
     // Common
     // '-hide_banner', '-loglevel', 'error',
     // Input 0: Audio
+    '-hwaccel', 'libvpdau',
     '-thread_queue_size', '4096',
     '-itsoffset', params.audioOffset,
     '-f', 'pulse',
     '-i', params.outputName + '.monitor', '-acodec', 'aac',
     // Video
-    '-thread_queue_size', '2048',
+    '-thread_queue_size', '4096',
     // framerate
     '-framerate', params.fps,
     // input
     '-i', '-', '-f', 'image2pipe',
     // video settings
     // for mp4
-    '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuvj420p',
-    '-tune', 'zerolatency',
+    '-c:v', 'libx264rgb', '-preset', 'ultrafast', /*'-pix_fmt', 'yuvj420p',*/
+    '-tune', 'fastdecode',
     '-movflags', '+faststart',
     // video optimization
     '-me_method', 'hex', '-threads', '5',
     //
     // Output
-    '-vb',
-    '2500k',
-    '-vf',
-    'pp=al',
+    // '-vb',
+    // '2500k',
+    // '-vf',
+    // 'pp=al',
     '-r', params.fps,
     '-threads', '5',
     '-f', 'mp4', params.output,
