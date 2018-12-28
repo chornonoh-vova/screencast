@@ -54,7 +54,7 @@ function ffmpegOpts(params) {
     '-i', '-', '-f', 'image2pipe',
     // video settings
     // for mp4
-    '-c:v', 'libx264rgb', '-preset', 'ultrafast', /*'-pix_fmt', 'yuvj420p',*/
+    '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuvj420p',
     '-tune', 'fastdecode',
     '-movflags', '+faststart',
     // video optimization
