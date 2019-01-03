@@ -35,8 +35,8 @@ class ScreenCast {
     // checking arguments
     this.pageUrl = url || args.getUrl();
     this.fileOutputName = outputName || args.getOutputName();
-    this.pageWidth = width || '1400';
-    this.pageHeight = height || '900';
+    this.pageWidth = width || '1280';
+    this.pageHeight = height || '720';
 
     logger.debug(`Process PID: ${process.pid}`);
 
@@ -98,9 +98,9 @@ class ScreenCast {
   }
 
   onScreencastFrame(event) {
-    this.Page.screencastFrameAck({sessionId: event.sessionId}).catch((err) => {
-      logger.error(err);
-    });
+    // this.Page.screencastFrameAck({sessionId: event.sessionId}).catch((err) => {
+    //   logger.error(err);
+    // });
 
     this.stats.track(event);
     if (this.ffmpeg == null) {
@@ -111,14 +111,7 @@ class ScreenCast {
       this.stats.getStats.ffmpegReady = true;
       const lastImage = Buffer.from(event.data, 'base64');
 
-      for (let i = 0; i < this.stats.getStats.addIterations; i++) {
-        this.ffmpeg.stdin.write(lastImage);
-        this.stats.getStats.framesDeltaForFPS++;
-        this.stats.frameAdded();
-      }
-
       while (this.stats.getStats.framesToAddNow > 0) {
-        // logger.log("Adding extra frame..");
         this.ffmpeg.stdin.write(lastImage);
         this.stats.getStats.framesDeltaForFPS++;
         this.stats.frameAdded();
