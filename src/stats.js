@@ -1,5 +1,4 @@
 const logger = require('./logger');
-
 module.exports = function() {
   this.streamStats = {
     second: Math.floor(new Date().getTime() / 1000),

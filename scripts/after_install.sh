@@ -3,6 +3,8 @@
 # Need to comment default audio muting
 
 MUTE_AUDIO="'\-\-mute\-audio'"
+FLAGS_FILE='chrome-launcher/dist/flags.js'
+FLAGS_FILE1='chrome-launcher/dist/src/flags.js'
 
 comment() {
     if ! grep -q "//$MUTE_AUDIO" $1; then
@@ -10,7 +12,16 @@ comment() {
     fi
 }
 
-# Because already in node_modules
-comment ../chrome-launcher/dist/flags.js
+if pwd | grep 'screencast'; then
+    # now in screencast folder, resolving in installed module or not
+    if pwd | grep 'node_modules/screencast'; then
+        # In installed module
+        comment ../$FLAGS_FILE
+        comment ../$FLAGS_FILE1
+    else
+        # In developers project
+        comment node_modules/$FLAGS_FILE
+        comment node_modules/$FLAGS_FILE1
+    fi
+fi
 
-comment ../chrome-launcher/dist/src/flags.js

@@ -1,11 +1,12 @@
 {
   "name": "screencast",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Package to record any website to a video",
   "main": "src/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint src/*.js"
+    "lint": "eslint src/*.js",
+    "postinstall": "./scripts/after_install.sh"
   },
   "author": "",
   "license": "ISC",
