@@ -27,15 +27,13 @@ const setDefaultSink = exports.setDefaultSink = async function() {
   await createSink(defaultSink);
   await execAsync(`pacmd set-default-sink ${defaultSink}`);
   const {stdout} = await execAsync(`pacmd set-default-source ${defaultSource}`);
-  const setDefaultOutput = stdout.trim();
-  return setDefaultOutput;
+  return stdout.trim();
 };
 
 const readSinkId = exports.readSinkId = async function(sinkName) {
   const {stdout} =
       await execAsync(`pactl list short sinks | grep ${sinkName} | cut -f1`);
-  const sinkId = stdout.trim();
-  return sinkId;
+  return stdout.trim();
 };
 
 // eslint-disable-next-line no-unused-vars
@@ -52,6 +50,5 @@ const moveInput = exports.moveInput = async function(inputId, sinkId) {
   logger.debug(`Moving Input id: ${inputId} to Sink id: ${sinkId}`);
   const {stdout} =
       await execAsync(`pacmd move-sink-input ${inputId} ${sinkId}`);
-  const output = stdout.trim();
-  return output;
+  return stdout.trim();
 };
