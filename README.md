@@ -9,4 +9,4 @@ Clone the project and prepare for developing by running `npm install`
 ## Usage
 See the example.js for details
 
-Also recording.js can be used as binary for project
+Also bin/recording.js can be used as binary for project

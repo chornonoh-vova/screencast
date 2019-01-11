@@ -1,4 +1,6 @@
-const {ScreenCast, logger} = require('.');
+#!/usr/bin/env node
+
+const {ScreenCast, logger} = require('../src/main');
 
 const screencast = new ScreenCast();
 
