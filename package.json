@@ -11,10 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "async-child-process": "^1.1.1",
-    "chrome-launcher": "^0.10.5",
-    "chrome-remote-interface": "^0.26.1",
-    "winston": "^3.1.0"
+    "async-child-process": "1.1.1",
+    "chrome-launcher": "0.10.5",
+    "chrome-remote-interface": "0.26.1",
+    "winston": "3.1.0"
   },
   "bin": {
     "recording": "./bin/recording.js"
