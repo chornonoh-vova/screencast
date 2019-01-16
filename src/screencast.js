@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 // Needed to start chrome
-const chromeLauncher = require('chrome-launcher');
+const {launch} = require('chrome-launcher');
 // Needed to send commands to chrome
 const chromeRemoteInterface = require('chrome-remote-interface');
 
@@ -170,18 +170,8 @@ class ScreenCast {
 
   // Helper for chrome launching
   launchChrome() {
-    return chromeLauncher.launch({
+    return launch({
       chromeFlags: [
-        // Usefull flags
-        '--enable-automation',
-        '--disable-background-timer-throttling',
-        '--run-all-compositor-stages-before-draw',
-        '--disable-new-content-rendering-timeout',
-        '--enable-features=SurfaceSynchronization',
-        '--disable-threaded-animation',
-        '--disable-threaded-scrolling',
-        '--disable-checker-imaging',
-        '--disable-image-animation-resync',
         // Setting up virtual windows size
         `--window-size=${this.pageWidth},${this.pageHeight}`,
         // Mandatory parameters
