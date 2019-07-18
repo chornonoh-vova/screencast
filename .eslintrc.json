@@ -9,6 +9,6 @@
     },
     "rules": {
         "valid-jsdoc": 1,
-        "require-jsdoc": 1
+        "require-jsdoc": 0
     }
 }

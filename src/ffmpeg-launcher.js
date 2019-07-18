@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc */
 const spawn = require('child_process').spawn;
 const logger = require('./logger');
 
@@ -19,7 +18,9 @@ function closeAll() {
 const start = (exports.start = function(params) {
   logger.debug(`Initializing ffmpeg, fps: ${params.fps}`);
 
-  ffmpeg = spawn('ffmpeg', ffmpegOpts(params), {stdio: ['pipe', 'pipe', 2], detached: true});
+  ffmpeg = spawn(
+      'ffmpeg', ffmpegOpts(params),
+      {stdio: ['pipe', 'pipe', 2], detached: true});
 
   ffmpeg.on('error', (e) => {
     logger.error(e);
@@ -38,7 +39,7 @@ const start = (exports.start = function(params) {
 function ffmpegOpts(params) {
   return [
     // Common
-    // '-hide_banner', '-loglevel', 'error',
+    '-hide_banner', '-loglevel', params.logLevel,
     // Input 0: Audio
     '-hwaccel', 'libvpdau',
     '-thread_queue_size', '4096',

@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc */
 const logger = require('./logger');
 
 const args = process.argv.slice(2);

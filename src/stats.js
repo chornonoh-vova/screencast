@@ -1,4 +1,5 @@
 const logger = require('./logger');
+
 module.exports = function() {
   this.streamStats = {
     second: Math.floor(new Date().getTime() / 1000),
@@ -35,9 +36,9 @@ module.exports = function() {
         logger.debug(
             'Second: ' + this.streamStats.second + ' received ' +
             this.streamStats.framesReceivedPerSecond + '/' +
-            this.streamStats.currentFPS + '. Delta: ' +
-            this.streamStats.framesDeltaForFPS + '. Sent to FFMPEG: ' +
-            this.streamStats.totalFramesAddedPerSecond + ' .');
+            this.streamStats.currentFPS +
+            '. Delta: ' + this.streamStats.framesDeltaForFPS +
+            '. Sent to FFMPEG: ' + this.streamStats.totalFramesAddedPerSecond);
         logger.debug(
             'Total Frames Received: ' + this.streamStats.totalFramesReceived +
             ' . Total Time Elapsed: ' + this.streamStats.currentElapsedTime +

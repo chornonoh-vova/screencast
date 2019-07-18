@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc */
 // Needed to start chrome
 const {launch} = require('chrome-launcher');
 // Needed to send commands to chrome
@@ -61,7 +60,7 @@ class ScreenCast {
     // await this.loadPage(this.pageUrl);
 
     // Wait for page loading
-    await this.Page.loadEventFired(async() => {
+    await this.Page.loadEventFired(async () => {
       logger.debug('Page.loadEventFired');
       this.started = true;
       await this.afterPageLoaded(this.chrome, sinkId);
@@ -80,7 +79,9 @@ class ScreenCast {
         `grep 'Owner Module:' | awk '{print $3}')`);
   }
 
-  isStarted() { return this.started; }
+  isStarted() {
+    return this.started;
+  }
 
   async initPulseAudio() {
     try {
@@ -98,7 +99,8 @@ class ScreenCast {
   }
 
   onScreencastFrame(event) {
-    // this.Page.screencastFrameAck({sessionId: event.sessionId}).catch((err) => {
+    // this.Page.screencastFrameAck({sessionId: event.sessionId}).catch((err)
+    // => {
     //   logger.error(err);
     // });
 
@@ -132,7 +134,8 @@ class ScreenCast {
     }
     const params = ffmpegProcessParams(
         this.stats.getStats.currentFPS, 0, this.audioDevice,
-        this.fileOutputName, null);
+        this.fileOutputName, 'level+' + (process.env.FFLOG_LEVEL || 'warning'),
+        null);
     this.ffmpeg = ffmpegLauncher.start(params);
 
     await this.startCapturingFrames();
@@ -146,8 +149,9 @@ class ScreenCast {
 
   startCapturingFrames() {
     // Listener for new frame
-    this.remoteInterface.on(
-        'Page.screencastFrame', (event) => { this.onScreencastFrame(event); });
+    this.remoteInterface.on('Page.screencastFrame', (event) => {
+      this.onScreencastFrame(event);
+    });
     logger.debug('Starting capturing screen frames..');
     return this.Page.startScreencast({format: 'jpeg', quality: 50});
   }
@@ -175,7 +179,7 @@ class ScreenCast {
         // Setting up virtual windows size
         `--window-size=${this.pageWidth},${this.pageHeight}`,
         // Mandatory parameters
-        '--headless',  // '--disable-gpu',
+        '--headless', // '--disable-gpu',
         // Fixes issue, when no sandbox is avalaible
         '--no-sandbox',
         // Fixes issue, when user must press play on page
@@ -186,8 +190,15 @@ class ScreenCast {
   }
 }
 
-function ffmpegProcessParams(f, af, on, o, cb) {
-  return {fps: f, audioOffset: af, outputName: on, output: o, callback: cb};
+function ffmpegProcessParams(f, af, on, o, ll, cb) {
+  return {
+    fps: f,
+    audioOffset: af,
+    outputName: on,
+    output: o,
+    logLevel: ll,
+    callback: cb,
+  };
 }
 
 module.exports.ScreenCast = ScreenCast;
